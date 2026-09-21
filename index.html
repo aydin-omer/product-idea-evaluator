@@ -33,7 +33,7 @@
   }
   .subtitle {
     color: var(--muted);
-    margin-bottom: 32px;
+    margin-bottom: 24px;
     font-size: 15px;
   }
   .card {
@@ -42,6 +42,37 @@
     border-radius: 12px;
     padding: 24px;
     margin-bottom: 20px;
+  }
+  .key-card label.title {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .key-card .desc {
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 12px;
+    line-height: 1.5;
+  }
+  .key-card .desc a {
+    color: var(--accent);
+  }
+  input[type="password"], input[type="text"] {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: #0f172a;
+    color: var(--text);
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+  .remember-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--muted);
   }
   .question {
     margin-bottom: 24px;
@@ -95,11 +126,19 @@
     cursor: pointer;
     transition: opacity 0.15s;
   }
-  button#evaluate:hover {
+  button#evaluate:hover:not(:disabled) {
     opacity: 0.9;
   }
-  #result {
+  button#evaluate:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  #result, #error-box {
     display: none;
+  }
+  #error-box {
+    color: #fca5a5;
+    font-size: 14px;
   }
   .score-circle {
     width: 140px;
@@ -133,6 +172,7 @@
     color: var(--muted);
     font-size: 14px;
     margin-bottom: 20px;
+    line-height: 1.5;
   }
   .breakdown {
     border-top: 1px solid var(--border);
@@ -145,19 +185,6 @@
     margin-bottom: 10px;
     font-size: 14px;
   }
-  .bar-bg {
-    flex: 1;
-    height: 6px;
-    background: var(--border);
-    border-radius: 3px;
-    margin: 0 12px;
-    overflow: hidden;
-  }
-  .bar-fill {
-    height: 100%;
-    border-radius: 3px;
-    transition: width 0.4s ease;
-  }
   .reset-link {
     display: block;
     text-align: center;
@@ -167,22 +194,51 @@
     cursor: pointer;
     text-decoration: underline;
   }
+  .spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255,255,255,0.4);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
 </style>
 </head>
 <body>
 
 <div class="container">
   <h1>💡 Product Idea Evaluator</h1>
-  <div class="subtitle">Quickly score your product idea against 4 classic product management criteria.</div>
+  <div class="subtitle">Answer a few questions about your idea and get an AI-generated evaluation, powered by Google Gemini.</div>
+
+  <div class="card key-card">
+    <label class="title">Your Gemini API Key</label>
+    <div class="desc">
+      This tool calls the Gemini API directly from your browser, so it needs your own free API key.
+      Get one in a few seconds at
+      <a href="https://aistudio.google.com/apikey" target="_blank">Google AI Studio</a> — no credit card required.
+      Your key is only used to call Gemini directly from your browser; it is never sent anywhere else or stored on any server.
+    </div>
+    <input type="password" id="api-key" placeholder="Paste your Gemini API key here" autocomplete="off">
+    <div class="remember-row">
+      <input type="checkbox" id="remember-key">
+      <label for="remember-key">Remember this key in this browser only</label>
+    </div>
+  </div>
 
   <div class="card" id="form-card">
     <div class="question" data-key="market">
       <label class="title">Market Size</label>
       <div class="desc">How large is the target market for this idea?</div>
       <div class="options">
-        <div class="option" data-value="1">Low</div>
-        <div class="option" data-value="2">Medium</div>
-        <div class="option" data-value="3">High</div>
+        <div class="option" data-value="Low">Low</div>
+        <div class="option" data-value="Medium">Medium</div>
+        <div class="option" data-value="High">High</div>
       </div>
     </div>
 
@@ -190,9 +246,9 @@
       <label class="title">Competitive Intensity</label>
       <div class="desc">How crowded is this space with competitors?</div>
       <div class="options">
-        <div class="option" data-value="3">Low</div>
-        <div class="option" data-value="2">Medium</div>
-        <div class="option" data-value="1">High</div>
+        <div class="option" data-value="Low">Low</div>
+        <div class="option" data-value="Medium">Medium</div>
+        <div class="option" data-value="High">High</div>
       </div>
     </div>
 
@@ -200,9 +256,9 @@
       <label class="title">Feasibility</label>
       <div class="desc">How easy is this to build with current resources?</div>
       <div class="options">
-        <div class="option" data-value="1">Low</div>
-        <div class="option" data-value="2">Medium</div>
-        <div class="option" data-value="3">High</div>
+        <div class="option" data-value="Low">Low</div>
+        <div class="option" data-value="Medium">Medium</div>
+        <div class="option" data-value="High">High</div>
       </div>
     </div>
 
@@ -210,14 +266,20 @@
       <label class="title">Differentiation</label>
       <div class="desc">How different is this from existing solutions?</div>
       <div class="options">
-        <div class="option" data-value="1">Low</div>
-        <div class="option" data-value="2">Medium</div>
-        <div class="option" data-value="3">High</div>
+        <div class="option" data-value="Low">Low</div>
+        <div class="option" data-value="Medium">Medium</div>
+        <div class="option" data-value="High">High</div>
       </div>
     </div>
 
-    <button id="evaluate">Evaluate</button>
+    <label class="title" style="margin-top: 8px;">Optional: describe your idea in a sentence</label>
+    <div class="desc">The more context you give, the more specific the feedback will be.</div>
+    <input type="text" id="idea-description" placeholder="e.g. A marketplace connecting freelance vets with pet owners">
+
+    <button id="evaluate">Evaluate with AI</button>
   </div>
+
+  <div class="card" id="error-box"></div>
 
   <div class="card" id="result">
     <div class="score-circle" id="score-circle">
@@ -229,25 +291,188 @@
 
     <div class="breakdown" id="breakdown"></div>
 
-    <div class="reset-link" id="reset">↺ Evaluate again</div>
+    <div class="reset-link" id="reset">↺ Evaluate another idea</div>
   </div>
 </div>
 
 <script>
-  const WEIGHTS = {
-    market: 0.30,
-    competition: 0.20,
-    feasibility: 0.25,
-    differentiation: 0.25,
-  };
-
   const LABELS = {
     market: "Market Size",
-    competition: "Competition (low=good)",
+    competition: "Competitive Intensity",
     feasibility: "Feasibility",
     differentiation: "Differentiation",
   };
 
   const answers = {};
 
-  document.querySelectorAll(".question").forEa
+  const storedKey = localStorage.getItem("gemini_api_key");
+  if (storedKey) {
+    document.getElementById("api-key").value = storedKey;
+    document.getElementById("remember-key").checked = true;
+  }
+
+  document.querySelectorAll(".question").forEach((q) => {
+    const key = q.dataset.key;
+    q.querySelectorAll(".option").forEach((opt) => {
+      opt.addEventListener("click", () => {
+        q.querySelectorAll(".option").forEach((o) => o.classList.remove("selected"));
+        opt.classList.add("selected");
+        answers[key] = opt.dataset.value;
+      });
+    });
+  });
+
+  const evaluateBtn = document.getElementById("evaluate");
+
+  evaluateBtn.addEventListener("click", async () => {
+    const apiKey = document.getElementById("api-key").value.trim();
+    const keys = Object.keys(LABELS);
+    const missing = keys.filter((k) => !(k in answers));
+
+    hideError();
+
+    if (!apiKey) {
+      showError("Please paste your Gemini API key above first.");
+      return;
+    }
+    if (missing.length > 0) {
+      showError("Please answer all four questions.");
+      return;
+    }
+
+    if (document.getElementById("remember-key").checked) {
+      localStorage.setItem("gemini_api_key", apiKey);
+    } else {
+      localStorage.removeItem("gemini_api_key");
+    }
+
+    const description = document.getElementById("idea-description").value.trim();
+
+    setLoading(true);
+    try {
+      const evaluation = await evaluateWithGemini(apiKey, answers, description);
+      showResult(evaluation);
+    } catch (err) {
+      showError("Could not get an evaluation: " + err.message);
+    } finally {
+      setLoading(false);
+    }
+  });
+
+  async function evaluateWithGemini(apiKey, answers, description) {
+    const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
+
+    const prompt = `You are a sharp, experienced product management advisor.
+Evaluate the following product idea based on these four criteria:
+
+- Market Size: ${answers.market}
+- Competitive Intensity: ${answers.competition} (High competition is a downside)
+- Feasibility: ${answers.feasibility}
+- Differentiation: ${answers.differentiation}
+${description ? `\nIdea description: ${description}` : ""}
+
+Respond ONLY with a JSON object in this exact shape, no other text:
+{
+  "score": <integer 0-100, an overall viability score>,
+  "verdict": <a short 2-4 word verdict, e.g. "Promising" or "Needs Rework">,
+  "feedback": <2-3 sentences of specific, honest, actionable feedback>,
+  "criteria_notes": {
+    "market": <one short sentence on this criterion>,
+    "competition": <one short sentence on this criterion>,
+    "feasibility": <one short sentence on this criterion>,
+    "differentiation": <one short sentence on this criterion>
+  }
+}`;
+
+    const payload = {
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { responseMimeType: "application/json" },
+    };
+
+    const resp = await fetch(url, {
+      method: "POST",
+      headers: {
+        "x-goog-api-key": apiKey,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!resp.ok) {
+      if (resp.status === 400 || resp.status === 403) {
+        throw new Error("Your API key looks invalid or unauthorized. Double-check it and try again.");
+      }
+      if (resp.status === 429) {
+        throw new Error("Rate limit reached on the free tier. Wait a moment and try again.");
+      }
+      throw new Error(`Gemini API returned status ${resp.status}.`);
+    }
+
+    const data = await resp.json();
+    const text = data.candidates[0].content.parts[0].text;
+    return JSON.parse(text);
+  }
+
+  function setLoading(isLoading) {
+    evaluateBtn.disabled = isLoading;
+    evaluateBtn.innerHTML = isLoading
+      ? '<span class="spinner"></span>Evaluating...'
+      : "Evaluate with AI";
+  }
+
+  function showError(message) {
+    const box = document.getElementById("error-box");
+    box.textContent = message;
+    box.style.display = "block";
+  }
+
+  function hideError() {
+    document.getElementById("error-box").style.display = "none";
+  }
+
+  function showResult(evaluation) {
+    document.getElementById("form-card").style.display = "none";
+    hideError();
+    document.getElementById("result").style.display = "block";
+
+    const score = Math.max(0, Math.min(100, Math.round(evaluation.score)));
+    document.getElementById("score-number").textContent = score;
+
+    let color;
+    if (score >= 70) color = "#22c55e";
+    else if (score >= 40) color = "#eab308";
+    else color = "#ef4444";
+
+    document.getElementById("score-circle").style.borderColor = color;
+    document.getElementById("score-number").style.color = color;
+    document.getElementById("verdict").textContent = evaluation.verdict || "";
+    document.getElementById("verdict-desc").textContent = evaluation.feedback || "";
+
+    const breakdownEl = document.getElementById("breakdown");
+    breakdownEl.innerHTML = "";
+
+    const notes = evaluation.criteria_notes || {};
+    Object.keys(LABELS).forEach((key) => {
+      const row = document.createElement("div");
+      row.className = "breakdown-row";
+      row.style.flexDirection = "column";
+      row.style.alignItems = "flex-start";
+      row.innerHTML = `
+        <strong style="margin-bottom:2px;">${LABELS[key]}</strong>
+        <span style="color:var(--muted); font-size:13px;">${notes[key] || ""}</span>
+      `;
+      breakdownEl.appendChild(row);
+    });
+  }
+
+  document.getElementById("reset").addEventListener("click", () => {
+    document.getElementById("result").style.display = "none";
+    document.getElementById("form-card").style.display = "block";
+    document.querySelectorAll(".option").forEach((o) => o.classList.remove("selected"));
+    document.getElementById("idea-description").value = "";
+    for (const key in answers) delete answers[key];
+  });
+</script>
+
+</body>
+</html>
