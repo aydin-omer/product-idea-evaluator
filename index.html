@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ürün Fikri Değerlendirme Aracı</title>
+<title>Product Idea Evaluator</title>
 <style>
   :root {
     --bg: #0f172a;
@@ -172,31 +172,82 @@
 <body>
 
 <div class="container">
-  <h1>💡 Ürün Fikri Değerlendirme Aracı</h1>
-  <div class="subtitle">4 klasik ürün yönetimi kriterine göre fikrini hızlıca değerlendir.</div>
+  <h1>💡 Product Idea Evaluator</h1>
+  <div class="subtitle">Quickly score your product idea against 4 classic product management criteria.</div>
 
   <div class="card" id="form-card">
     <div class="question" data-key="market">
-      <label class="title">Pazar Büyüklüğü</label>
-      <div class="desc">Bu fikrin hedeflediği pazar ne kadar büyük?</div>
+      <label class="title">Market Size</label>
+      <div class="desc">How large is the target market for this idea?</div>
       <div class="options">
-        <div class="option" data-value="1">Düşük</div>
-        <div class="option" data-value="2">Orta</div>
-        <div class="option" data-value="3">Yüksek</div>
+        <div class="option" data-value="1">Low</div>
+        <div class="option" data-value="2">Medium</div>
+        <div class="option" data-value="3">High</div>
       </div>
     </div>
 
     <div class="question" data-key="competition">
-      <label class="title">Rekabet Yoğunluğu</label>
-      <div class="desc">Bu alanda ne kadar yoğun rekabet var?</div>
+      <label class="title">Competitive Intensity</label>
+      <div class="desc">How crowded is this space with competitors?</div>
       <div class="options">
-        <div class="option" data-value="3">Düşük</div>
-        <div class="option" data-value="2">Orta</div>
-        <div class="option" data-value="1">Yüksek</div>
+        <div class="option" data-value="3">Low</div>
+        <div class="option" data-value="2">Medium</div>
+        <div class="option" data-value="1">High</div>
       </div>
     </div>
 
     <div class="question" data-key="feasibility">
-      <label class="title">Uygulanabilirlik</label>
-      <div class="desc">Mevcut kaynaklarla ne kadar kolay hayata geçirilebilir?</div>
+      <label class="title">Feasibility</label>
+      <div class="desc">How easy is this to build with current resources?</div>
       <div class="options">
+        <div class="option" data-value="1">Low</div>
+        <div class="option" data-value="2">Medium</div>
+        <div class="option" data-value="3">High</div>
+      </div>
+    </div>
+
+    <div class="question" data-key="differentiation">
+      <label class="title">Differentiation</label>
+      <div class="desc">How different is this from existing solutions?</div>
+      <div class="options">
+        <div class="option" data-value="1">Low</div>
+        <div class="option" data-value="2">Medium</div>
+        <div class="option" data-value="3">High</div>
+      </div>
+    </div>
+
+    <button id="evaluate">Evaluate</button>
+  </div>
+
+  <div class="card" id="result">
+    <div class="score-circle" id="score-circle">
+      <div class="score-number" id="score-number">0</div>
+      <div class="score-label">/ 100</div>
+    </div>
+    <div class="verdict" id="verdict"></div>
+    <div class="verdict-desc" id="verdict-desc"></div>
+
+    <div class="breakdown" id="breakdown"></div>
+
+    <div class="reset-link" id="reset">↺ Evaluate again</div>
+  </div>
+</div>
+
+<script>
+  const WEIGHTS = {
+    market: 0.30,
+    competition: 0.20,
+    feasibility: 0.25,
+    differentiation: 0.25,
+  };
+
+  const LABELS = {
+    market: "Market Size",
+    competition: "Competition (low=good)",
+    feasibility: "Feasibility",
+    differentiation: "Differentiation",
+  };
+
+  const answers = {};
+
+  document.querySelectorAll(".question").forEa
